@@ -8,6 +8,8 @@ Para utilizar os simbolos criados por nós no gEDA:
 	- sudo mkdir custom_IC
 
 - Modificar o arquivo geda-clib.scm no diretorio do gEDA:
+	- cd /usr/share/gEDA/gafrc.d
+	- sudo gedit geda-clib.scm
 	- adicionar ("custom_IC" "Custom ICs") logo abaixo de "local"
 
 - Copiar os símbolos para o diretório /usr/share/gEDA/sym/custom_IC
