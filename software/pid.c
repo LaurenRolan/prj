@@ -1,8 +1,23 @@
-#include <stdlib.h>
-#include <time.h>
+#include "pid.h"
 
-extern PID_struct PID;
-extern amostra_lista amostras;
+lista* amostras;
+pid_struct* PID_struct;
+
+void initPID()
+{
+	PID_struct = (pid_struct*) malloc(sizeof(pid_struct));
+}
+
+void initSamples()
+{
+	amostras = (lista*) malloc(sizeof(lista));
+}
+
+void cleanSamples()
+{
+	free(amostras);
+	amostras = (lista*) malloc(sizeof(amostras));
+}
 
 void bumplessTransfer()
 {
@@ -19,6 +34,11 @@ void bumpTest(double objective)
 	double currentCO = 0;
 	double startTime, middleTime;
 
+	if(PID_struct == NULL)
+		initPID(PID_struct);
+	if(amostras == NULL)
+		initSamples(amostras);
+
 	//O controlador envia um sinal na amplitude do objetivo
 
 	//O controlador monitora valores de PV (armazenando num array?) até que fique estável
@@ -27,32 +47,32 @@ void bumpTest(double objective)
 	monitorBump(&startTime, &currentPV);
 		
 	//Calcula o ganho do processo com base na variação de PV e CO
-	PID.Kp = (currentPV - PID.PV) / (currentCO - PID.CO);
+	PID_struct->Kp = (currentPV - PID_struct->PV) / (currentCO - PID_struct->CO);
 
 	//Calcula a constante de tempo do processo, com base na variação de PV
-	currentPV = PID.PV - 0.63 * (currentPV - PID.PV);
+	currentPV = PID_struct->PV - 0.63 * (currentPV - PID_struct->PV);
 
 	//Calcula o tempo correspondente a 63% (busca no array)
 	middleTime = getTimeAt(currentPV);
 
 	//Calcula variação entre início da resposta e os 63% (PT)
-	PID.Tp = middleTime - startTime;
+	PID_struct->Tp = middleTime - startTime;
 
 	//Aproximação moderada
-	PID.Tc = PID.Tp;
+	PID_struct->Tc = PID_struct->Tp;
 	//Aproximação agressiva
 	//PID.Tc = 0.1 * PID.Tp;
 	//Aproximação conservadora
 	//PID.Tc = 10 * PID.Tp;
 
 	//Calcula Kc
-	PID.Kc = ((PID.Tp + 0.5 * PID.Thetap) / (PID.Tc + 0.5 * PID.Thetap)) * (1 / PID.Kp);
+	PID_struct->Kc = ((PID_struct->Tp + 0.5 * PID_struct->Thetap) / (PID_struct->Tc + 0.5 * PID_struct->Thetap)) * (1 / PID_struct->Kp);
 
 	//Calcula Ti
-	PID.Ti = PID.Tp + 0.5 * PID.Thetap;
+	PID_struct->Ti = PID_struct->Tp + 0.5 * PID_struct->Thetap;
 
 	//Calcula Td
-	PID.Td = (PID.Tp * PID.Thetap) / (2 * PID.Tp + PID.Thetap);
+	PID_struct->Td = (PID_struct->Tp * PID_struct->Thetap) / (2 * PID_struct->Tp + PID_struct->Thetap);
 }
 
 

@@ -1,17 +1,19 @@
 #ifndef PID
 #define PID
+#include <stdlib.h>
+#include <time.h>
 
-typedef struct lista_amostras
+typedef struct lista
 {
 	double valor;
 	double timestamp;
-	struct lista_amostras *proximo;
-}amostra_lista;
+	struct lista *proximo;
+}lista;
 
 typedef struct pid_struct
 {
 	double error;		// Erro anterior na medida
-	double integral;		// Acumuladora da integral
+	double integral;	// Acumuladora da integral
 	double Kc;		// Parâmetro do produto
 	double Ti;		// Parâmetro da integral
 	double Td;		// Parâmetro da divisão
@@ -22,11 +24,14 @@ typedef struct pid_struct
 	double Kp;		// Ganho do processo, usado no modelo
 	double Tp;		// Cte de tempo do processo, usado no modelo
 	double Thetap;		// Dead-time
-}PID_struct;
+}pid_struct;
 
-amostra_lista amostras;
-PID_struct PID;
+extern lista* amostras;
+extern pid_struct* PID_struct;
 
+void initPID();
+void initSamples();
+void cleanSamples();
 void bumpTest(double objective);
 void bumplessTransfer();
 void monitorBump(double *startTime, double *currentPV);
