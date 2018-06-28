@@ -1,18 +1,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-extern double error;		// Erro anterior na medida
-extern double integral;		// Acumuladora da integral
-extern double Kc;		// Parâmetro do produto
-extern double Ti;		// Parâmetro da integral
-extern double Td;		// Parâmetro da divisão
-extern double Tc;		// Cte de tempo do loop
-extern double CO;		// Output do controlador (pwm?)
-extern double COb;		// Bias do output
-extern double PV;		// Variável do processo (leitura do sensor)
-extern double Kp;		// Ganho do processo, usado no modelo
-extern double Tp;		// Cte de tempo do processo, usado no modelo
-extern double Thetap;		// Dead-time
+extern PID_struct PID;
+extern amostra_lista amostras;
 
 void bumplessTransfer()
 {
@@ -37,32 +27,32 @@ void bumpTest(double objective)
 	monitorBump(&startTime, &currentPV);
 		
 	//Calcula o ganho do processo com base na variação de PV e CO
-	Kp = (currentPV - PV) / (currentCO - CO);
+	PID.Kp = (currentPV - PID.PV) / (currentCO - PID.CO);
 
 	//Calcula a constante de tempo do processo, com base na variação de PV
-	currentPV = PV - 0.63 * (currentPV - PV);
+	currentPV = PID.PV - 0.63 * (currentPV - PID.PV);
 
 	//Calcula o tempo correspondente a 63% (busca no array)
 	middleTime = getTimeAt(currentPV);
 
 	//Calcula variação entre início da resposta e os 63% (PT)
-	Tp = middleTime - startTime;
+	PID.Tp = middleTime - startTime;
 
 	//Aproximação moderada
-	Tc = Tp;
+	PID.Tc = PID.Tp;
 	//Aproximação agressiva
-	//Tc = 0.1 * Tp;
+	//PID.Tc = 0.1 * PID.Tp;
 	//Aproximação conservadora
-	//Tc = 10 * Tp;
+	//PID.Tc = 10 * PID.Tp;
 
 	//Calcula Kc
-	Kc = ((Tp + 0.5 * Thetap) / (Tc + 0.5 * Thetap)) * (1 / Kp);
+	PID.Kc = ((PID.Tp + 0.5 * PID.Thetap) / (PID.Tc + 0.5 * PID.Thetap)) * (1 / PID.Kp);
 
 	//Calcula Ti
-	Ti = Tp + 0.5 * Thetap;
+	PID.Ti = PID.Tp + 0.5 * PID.Thetap;
 
 	//Calcula Td
-	Td = (Tp * Thetap) / (2 * Tp + Thetap);
+	PID.Td = (PID.Tp * PID.Thetap) / (2 * PID.Tp + PID.Thetap);
 }
 
 
